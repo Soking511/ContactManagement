@@ -3,17 +3,19 @@ import asyncHandler from "express-async-handler";
 import contactModel from "./contactModel";
 import { Features } from "../../utils/features";
 import { releaseLock } from "../../services/contactService";
+import { updateContactState } from "../../services/socketService";
 
 export const createContact = asyncHandler(
   async (req: Request, res: Response) => {
     const { name, email, phone, notes } = req.body;
-    const contatcs = await contactModel.findOne({ email });
-    if (contatcs) {
+    const existingContact = await contactModel.findOne({ email });
+    if (existingContact) {
       res.status(400).json({ message: "Contact already exists" });
       throw new Error("Contact already exists");
     }
 
     const contact = await contactModel.create({ name, email, phone, notes });
+    updateContactState(contact);
 
     res.status(201).json(contact);
   }
@@ -26,6 +28,7 @@ export const deleteContact = asyncHandler(
 
     if (!contact) {
       res.status(404).json({ message: "Contact not found" });
+      return;
     }
 
     res.status(200).json(contact);
@@ -44,9 +47,10 @@ export const updateContact = asyncHandler(
 
     if (!contact) {
       res.status(404).json({ message: "Contact not found" });
+      return;
     }
     releaseLock(contactId, req.user!._id);
-
+    updateContactState(contact);
     res.status(200).json(contact);
   }
 );

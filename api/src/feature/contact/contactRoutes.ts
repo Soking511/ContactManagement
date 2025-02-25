@@ -16,7 +16,7 @@ export const contactRoutes: Router = Router();
 
 contactRoutes
   .route("/")
-  .post(isLoggedIn, createContactValidator, createContact)
+  .post(createContactValidator, createContact) //isLoggedIn,
   .get(getAllContacts);
 
 contactRoutes

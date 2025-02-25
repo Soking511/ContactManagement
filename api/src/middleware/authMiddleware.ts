@@ -7,5 +7,6 @@ export const isLoggedIn = () => {
         return next(new Error('unauthorized!'));
       }
       next();
+
     });
-  };
+  }; 

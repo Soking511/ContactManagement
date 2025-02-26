@@ -1,0 +1,26 @@
+:host {
+  display: block;
+}
+
+.disabled-field {
+  opacity: 0.75;
+  cursor: not-allowed;
+  background-color: rgba(243, 244, 246, 0.5);
+  user-select: none;
+  border: 1px solid transparent;
+}
+
+.editable-field {
+  cursor: pointer;
+  border: 1px dashed transparent;
+  transition: all 0.2s ease-in-out;
+}
+
+.editable-field:hover {
+  background-color: rgba(243, 244, 246, 1);
+  border-color: rgba(209, 213, 219, 1);
+}
+
+input {
+  transition: all 0.2s ease-in-out;
+}

@@ -1,5 +1,5 @@
 import { ILock } from "../feature/contact/contactInterface";
-import { updateContactLock } from "./socketService";
+import { deleteContactUnlock, updateContactLock } from "./socketService";
 
 const locks = new Map<string, ILock>();
 const LOCK_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
@@ -20,9 +20,11 @@ export const acquireLock = (contactId: string, userId: string): boolean => {
     // if expired
     else {
       locks.delete(contactId);
+      return true;
     }
   }
 
+  console.log("Locking contact", contactId);
   locks.set(contactId, { userId, contactId, timestamp: Date.now() });
   updateContactLock(contactId);
   return true;
@@ -32,7 +34,7 @@ export const releaseLock = (contactId: string, userId: string): boolean => {
   const lock = locks.get(contactId);
   if (lock && lock.userId === userId) {
     locks.delete(contactId);
-    updateContactLock(contactId);
+    deleteContactUnlock(contactId);
     return true;
   }
   return false;

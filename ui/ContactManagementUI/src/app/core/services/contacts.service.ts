@@ -2,7 +2,8 @@ import { Injectable, signal } from '@angular/core';
 import { IPagination } from '../interfaces/paginationInterface';
 import { io, Socket } from 'socket.io-client';
 import { ApiService } from './api.service';
-import { IContact } from '../interfaces/contactInterface';
+import { IContact, IContactWithLock, ILock } from '../interfaces/contactInterface';
+import { AuthService } from './auth.service';
 
 interface SortConfig {
   column: keyof IContact;
@@ -15,13 +16,14 @@ interface SortConfig {
 
 
 export class ContactsService {
-  private socket: Socket;
-  contacts = signal<IContact[]>([]);
+  socket: Socket;
+  contacts = signal<IContactWithLock[]>([]);
   pagination: IPagination | null = null;
   isUserIdle = signal<boolean>(false);
+  selectedContact = signal<IContact | null>(null);
   private currentSort = signal<SortConfig>({ column: 'name', direction: 'asc' });
 
-  constructor(private apiService: ApiService) {
+  constructor(private apiService: ApiService, private authService: AuthService) {
     this.socket = io('http://localhost:3000', {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
@@ -41,10 +43,10 @@ export class ContactsService {
   
 
   private setupSocketListeners() {
-    // this.socket.on('connection', () => {
+    this.socket.on('connection', () => {
     //   console.log('Socket connected');
       
-    // });
+    });
 
     // Events for updating the UI
     this.socket.on('contact:created', (contact: IContact, pagination: IPagination) => {
@@ -72,6 +74,16 @@ export class ContactsService {
       this.getContacts(this.pagination!.currentPage);
     });
 
+    this.socket.on('contact:lockState', (lock: ILock) => {
+      console.log(`Contact ${lock.contactId} locked by user ${lock.userId}: `);
+      const currentContacts = this.contacts() as IContactWithLock[];
+      const index = currentContacts.findIndex((c) => c._id === lock.contactId);
+      if (index !== -1) {
+        currentContacts[index].lock = lock;
+        this.contacts.set([...currentContacts]);
+      }
+    });
+
     this.socket.on('connect_error', (error) => {
       console.error('Socket connection error:', error);
     });
@@ -82,6 +94,7 @@ export class ContactsService {
       next: (response: any) => {
         this.contacts.set(response.data);
         this.pagination = response.pagination;
+        this.authService.user.set(response.currentUser);
       },
     });
   }

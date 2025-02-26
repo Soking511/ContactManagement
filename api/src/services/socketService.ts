@@ -5,7 +5,7 @@ import {
 } from "../feature/contact/contactInterface";
 import { Server as HttpServer } from "http";
 import { paginate } from "../utils/paginate";
-import { getLock, getUserLocks } from "./contactService";
+import { acquireLock, getLock, getUserLocks, releaseLock } from "./contactService";
 import { Server } from "socket.io";
 
 let io: Server;
@@ -17,6 +17,7 @@ export const SOCKET_EVENTS = {
   CONTACT_CREATED: "contact:created",
   CONTACT_LOCKED: "contact:locked",
   CONTACT_UNLOCKED: "contact:unlocked",
+  CONTACT_LOCK_STATE: "contact:lockState",
 };
 
 export const cleanContact = (contact: any): IContact => {
@@ -42,7 +43,24 @@ export const initializeSocket = (server: HttpServer) => {
         console.log(`Unlocking contact ${lock.contactId}`);
       });
     });
+
+    socket.on(
+      SOCKET_EVENTS.CONTACT_LOCKED,
+      (contactId: string, userId: string) => {
+        console.log(`Locking contact ${contactId} for user ${userId}`);
+        acquireLock(contactId, userId);
+      }
+    );
+    
+    socket.on(
+      SOCKET_EVENTS.CONTACT_UNLOCKED,
+      (contactId: string, userId: string) => {
+        console.log(`Unlocking contact ${contactId} for user ${userId}`);
+        releaseLock(contactId, userId);
+      }
+    );
   });
+
 
   return io;
 };
@@ -71,11 +89,13 @@ export const deleteContactState = (contactId: string) => {
 };
 
 export const updateContactLock = (contactId: string) => {
-  if (contactsState.contacts[contactId]) {
-    const lock = getLock(contactId);
-    contactsState.contacts[contactId].lock = lock;
-    io?.emit(SOCKET_EVENTS.CONTACT_LOCKED, { contactId, lock });
-  }
+  const lock = getLock(contactId);
+  if (!lock) return;
+
+  contactsState.contacts[contactId].lock = lock;
+  io?.emit(SOCKET_EVENTS.CONTACT_LOCK_STATE, lock);
+  console.log(contactsState);
+  console.log("socket event sent");
 };
 
 export const setInitialContacts = (contacts: IContact[]) => {
@@ -86,4 +106,11 @@ export const setInitialContacts = (contacts: IContact[]) => {
     };
     return acc;
   }, {} as { [id: string]: IContactWithLock });
+};
+
+export const deleteContactUnlock = (contactId: string) => {
+  if (contactsState.contacts[contactId]) {
+    contactsState.contacts[contactId].lock = null;
+    io?.emit(SOCKET_EVENTS.CONTACT_UPDATED, {...contactsState.contacts[contactId], lock: null});
+  }
 };

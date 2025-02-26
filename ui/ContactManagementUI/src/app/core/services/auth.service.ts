@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { TokenService } from './token.service';
 import { FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from './api.service';
 import { environment } from '../environments/environment';
+import { IUser } from '../interfaces/userInterface';
 
 interface AuthResponse {
   token: string;
@@ -15,7 +16,8 @@ interface AuthResponse {
   providedIn: 'root',
 })
 export class AuthService {
-
+  user = signal<IUser | null>(null);
+  
   constructor(
     private router: Router,
     private apiService: ApiService,

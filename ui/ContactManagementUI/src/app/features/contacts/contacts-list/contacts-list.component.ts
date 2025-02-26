@@ -28,7 +28,6 @@ type SortableColumns = keyof Omit<IContact, '_id'>;
   templateUrl: './contacts-list.component.html',
 })
 export class ContactsListComponent implements OnDestroy {
-  selectedContact = signal<IContact | null>(null);
   contactsService = inject(ContactsService);
   tableHeaders = [
     { key: 'name' as SortableColumns, label: 'Name' },
@@ -67,7 +66,7 @@ export class ContactsListComponent implements OnDestroy {
   }
 
   updateContact(event: {field: any, value: string}) {
-    const contact = this.selectedContact();
+    const contact = this.contactsService.selectedContact();
     console.log(contact)
     if (!contact) return;
 
@@ -108,8 +107,8 @@ export class ContactsListComponent implements OnDestroy {
   }
 
   onDeleteConfirm() {
-    if (this.selectedContact()) {
-      this.contactsService.deleteContact(this.selectedContact()!._id!);
+    if (this.contactsService.selectedContact()) {
+      this.contactsService.deleteContact(this.contactsService.selectedContact()!._id!);
       this.toggles.delete = false;
     }
   }

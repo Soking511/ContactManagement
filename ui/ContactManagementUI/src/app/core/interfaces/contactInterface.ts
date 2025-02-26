@@ -21,7 +21,7 @@ export interface ILock {
 }
 
 export interface IContactWithLock extends IContact {
-    lock: ILock | null;
+    lock?: ILock | null;
 }
 
 export interface IContactsState {

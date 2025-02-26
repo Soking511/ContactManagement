@@ -15,6 +15,9 @@ export const paginate = (
       search ? 
         contact.name.toLowerCase().includes(search.toLowerCase()) ||
         contact.email.toLowerCase().includes(search.toLowerCase()) ||
+        contact.address?.country.toLowerCase().includes(search.toLowerCase()) ||
+        contact.address?.city.toLowerCase().includes(search.toLowerCase()) ||
+        contact.address?.street.toLowerCase().includes(search.toLowerCase()) ||
         contact.phone.includes(search)
       : true
     );

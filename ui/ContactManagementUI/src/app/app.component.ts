@@ -13,7 +13,8 @@ export class AppComponent implements OnInit {
   constructor(private bnIdle: BnNgIdleService) {}
 
   ngOnInit(): void {
-    this.bnIdle.startWatching(5 * 60).subscribe((isTimedOut: boolean) => {
+    // 2 minutes
+    this.bnIdle.startWatching(2 * 60).subscribe((isTimedOut: boolean) => {
       if (isTimedOut) {
         window.dispatchEvent(new CustomEvent('userIdle', { detail: true }));
         this.bnIdle.stopTimer();

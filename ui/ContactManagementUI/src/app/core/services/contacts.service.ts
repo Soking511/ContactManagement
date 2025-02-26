@@ -24,6 +24,7 @@ export class ContactsService {
   private currentSort = signal<SortConfig>({ column: 'name', direction: 'asc' });
 
   constructor(private apiService: ApiService, private authService: AuthService) {
+
     this.socket = io('http://localhost:3000', {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
@@ -112,9 +113,10 @@ export class ContactsService {
     this.apiService.delete(`/contacts/${contactId}`).subscribe();
   }
 
-  disconnect(): void {
+  async disconnect(): Promise<void> {
     if (this.socket) {
-      this.socket.disconnect();
+      await this.socket.emit('contact:unlocked', this.selectedContact()?._id, this.authService.user()?._id);
+      await this.socket.disconnect();
     }
   }
 
@@ -151,7 +153,7 @@ export class ContactsService {
       if (event.detail) {
         this.disconnect();
         this.isUserIdle.set(true);
-        console.log('Disconnected due to idle state');
+    
       }
     }) as EventListener);
   }

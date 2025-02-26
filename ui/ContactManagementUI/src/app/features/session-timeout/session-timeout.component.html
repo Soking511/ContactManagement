@@ -1,0 +1,12 @@
+<app-popup
+  [isOpen]="true"
+  [showConfirmButton]="true"
+  [closeButton]="false"
+  [confirmButtonText]="'Refresh'"
+  (confirmPopup)="refreshPage();"
+>
+  <div class="flex items-center gap-2 text-red-500">
+    <span class="material-icons">error_outline</span>
+    <p>Session Timeout</p>
+  </div>
+</app-popup>

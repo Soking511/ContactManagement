@@ -34,15 +34,17 @@ import { ButtonComponent } from '../button/button.component';
               [cooldown]="'3'"
               [variant]="'primary'"
               (buttonClick)="confirmPopup.emit()"
-              >Confirm</app-button
+              >{{confirmButtonText}}</app-button
             >
-            }
+            } @if( closeButton ){
+
             <app-button
               [cooldown]="'3'"
               [variant]="'secondary'"
               (buttonClick)="closePopup.emit()"
               >Cancel</app-button
             >
+            }
           </div>
         </div>
       </div>
@@ -63,6 +65,8 @@ export class PopupComponent {
   @Input() isOpen = false;
   @Input() title = '';
   @Input() showConfirmButton = false;
+  @Input() closeButton = true;
+  @Input() confirmButtonText = 'Confirm';
   @Output() closePopup = new EventEmitter<void>();
   @Output() confirmPopup = new EventEmitter<void>();
 }

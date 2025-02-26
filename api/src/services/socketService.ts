@@ -1,8 +1,12 @@
-import { IContact, IContactWithLock, IContactsState } from "../feature/contact/contactInterface";
-import { getLock } from "./contactService";
+import {
+  IContact,
+  IContactWithLock,
+  IContactsState,
+} from "../feature/contact/contactInterface";
 import { Server as HttpServer } from "http";
+import { paginate } from "../utils/paginate";
+import { getLock, getUserLocks } from "./contactService";
 import { Server } from "socket.io";
-import contactModel from "../feature/contact/contactModel";
 
 let io: Server;
 let contactsState: IContactsState = { contacts: {} };
@@ -11,33 +15,33 @@ export const SOCKET_EVENTS = {
   CONTACT_UPDATED: "contact:updated",
   CONTACT_DELETED: "contact:deleted",
   CONTACT_CREATED: "contact:created",
-  CONTACT_LOCKED: "contact:locked", 
-  CONTACT_UNLOCKED: "contact:unlocked"
+  CONTACT_LOCKED: "contact:locked",
+  CONTACT_UNLOCKED: "contact:unlocked",
 };
 
-const cleanContact = (contact: any): IContact => {
+export const cleanContact = (contact: any): IContact => {
   const { _id, name, email, phone, notes, address } = contact;
   return { _id, name, email, phone, notes, address };
 };
 
 export const getContactsState = () => contactsState;
 
-export const initializeSocket = (httpServer: HttpServer) => {
-  io = new Server(httpServer, {
-    cors: { 
-      origin: "http://localhost:4200",
+export const initializeSocket = (server: HttpServer) => {
+  io = new Server(server, {
+    cors: {
+      origin: "*",
       methods: ["GET", "POST"],
-      credentials: true
     },
-    path: "/socket.io/",
-    serveClient: false
   });
 
-  io.on("connection", async() => {
-    if (Object.keys(contactsState.contacts).length === 0){ 
-      const contacts = await contactModel.find();
-      setInitialContacts(contacts.map(cleanContact));
-    }
+  io.on("connection", async (socket) => {
+    socket.on("disconnect", () => {
+      console.log("Client disconnected");
+      getUserLocks(socket.id).forEach((lock) => {
+        io?.emit(SOCKET_EVENTS.CONTACT_UNLOCKED, lock);
+        console.log(`Unlocking contact ${lock.contactId}`);
+      });
+    });
   });
 
   return io;
@@ -46,14 +50,14 @@ export const initializeSocket = (httpServer: HttpServer) => {
 export const createContactState = (contact: IContact) => {
   const lock = getLock(contact._id);
   contactsState.contacts[contact._id] = { ...contact, lock };
-  io?.emit(SOCKET_EVENTS.CONTACT_CREATED, { ...contact, lock });
+  io?.emit(SOCKET_EVENTS.CONTACT_CREATED, { ...contact, lock }, paginate()[0]);
 };
 
 export const updateContactState = (contact: IContact) => {
   const lock = getLock(contact._id);
   const isNewContact = !contactsState.contacts[contact._id];
   contactsState.contacts[contact._id] = { ...contact, lock };
-  
+
   if (isNewContact) {
     io?.emit(SOCKET_EVENTS.CONTACT_CREATED, { ...contact, lock });
   } else {
@@ -62,9 +66,8 @@ export const updateContactState = (contact: IContact) => {
 };
 
 export const deleteContactState = (contactId: string) => {
-  const deletedContact = contactsState.contacts[contactId];
   delete contactsState.contacts[contactId];
-  io?.emit(SOCKET_EVENTS.CONTACT_DELETED, { contactId, deletedContact });
+  io?.emit(SOCKET_EVENTS.CONTACT_DELETED, contactId, paginate()[0]);
 };
 
 export const updateContactLock = (contactId: string) => {
@@ -79,7 +82,7 @@ export const setInitialContacts = (contacts: IContact[]) => {
   contactsState.contacts = contacts.reduce((acc, contact) => {
     acc[contact._id] = {
       ...contact,
-      lock: getLock(contact._id)
+      lock: getLock(contact._id),
     };
     return acc;
   }, {} as { [id: string]: IContactWithLock });

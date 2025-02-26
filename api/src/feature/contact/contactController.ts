@@ -9,55 +9,50 @@ import { releaseLock } from "../../services/contactService";
 import { IContact } from "./contactInterface";
 import asyncHandler from "express-async-handler";
 import contactModel from "./contactModel";
+import { paginate } from "../../utils/paginate";
 
 export const getContacts = asyncHandler(async (req: Request, res: Response) => {
-  const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 5;
-  const skip = (page - 1) * limit;
-
-  const contacts = Object.values(getContactsState().contacts);
-  const totalContacts = contacts.length;
-  const totalPages = Math.ceil(totalContacts / limit);
-
-  const paginatedContacts = contacts.slice(skip, skip + limit);
-
+  const [pagination, contacts] = paginate(req);
   res.json({
-    data: paginatedContacts,
-    pagination: {
-      currentPage: page,
-      limit,
-      totalPages,
-      totalDocuments: totalContacts,
-      nextPage: page + 1 > totalPages ? page : page + 1,
-      prevPage: page - 1 < 1 ? page : page - 1,
-    },
+    data: contacts,
+    pagination,
   });
 });
 
 export const createContact = asyncHandler(
   async (req: Request, res: Response) => {
     const { name, email, phone, notes, address } = req.body;
-    const existingContact = await contactModel.findOne({ name });
+
+    if (!name || !email || !phone) {
+      res.status(400).json({ message: "Missing required fields" });
+      return;
+    }
+
+    // search in contacts state, that is faster than database 
+    const contacts = Object.values(getContactsState().contacts);
+    const existingContact = contacts.find(contact => contact.email === email);
     if (existingContact) {
       res.status(400).json({ message: "Contact already exists" });
       return;
     }
 
-    const contact = await contactModel.create({
-      name,
-      email,
-      phone,
-      notes,
-      address: {
-        street: address.street,
-        city: address.city,
-        country: address.country,
-      },
-    });
-
-    const savedContact = await contactModel.findById(contact._id).lean();
-    createContactState(savedContact as IContact);
-    res.status(201).json(savedContact);
+    const contact = await contactModel.create(
+      {
+        name,
+        email,
+        phone,
+        notes,
+        address: {
+          street: address.street,
+          city: address.city,
+          country: address.country,
+        },
+      }
+    ).then(doc => doc.toObject());
+    // convert mongoose document to plain object
+ 
+    createContactState(contact);
+    res.status(201).json(contact);
   }
 );
 

@@ -7,11 +7,3 @@ export interface QueryOptions {
   [key: string]: any;
 }
 
-export interface PaginationResult {
-  currentPage: number;
-  limit: number;
-  totalPages: number;
-  totalDocuments: number;
-  nextPage: number;
-  prevPage: number;
-}

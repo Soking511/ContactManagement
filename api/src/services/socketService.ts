@@ -1,82 +1,86 @@
-import { Server } from "socket.io";
-import { Server as HttpServer } from "http";
 import { IContact, IContactWithLock, IContactsState } from "../feature/contact/contactInterface";
-import { getAllLocks, getLock } from "./contactService";
+import { getLock } from "./contactService";
+import { Server as HttpServer } from "http";
+import { Server } from "socket.io";
 import contactModel from "../feature/contact/contactModel";
-import { Features } from "../utils/features";
 
 let io: Server;
 let contactsState: IContactsState = { contacts: {} };
 
 export const SOCKET_EVENTS = {
-  CONTACTS_STATE: "contacts:state"
+  CONTACT_UPDATED: "contact:updated",
+  CONTACT_DELETED: "contact:deleted",
+  CONTACT_CREATED: "contact:created",
+  CONTACT_LOCKED: "contact:locked", 
+  CONTACT_UNLOCKED: "contact:unlocked"
 };
 
 const cleanContact = (contact: any): IContact => {
-  const { _id, name, email, phone, notes } = contact;
-  return { _id, name, email, phone, notes };
+  const { _id, name, email, phone, notes, address } = contact;
+  return { _id, name, email, phone, notes, address };
 };
+
+export const getContactsState = () => contactsState;
 
 export const initializeSocket = (httpServer: HttpServer) => {
   io = new Server(httpServer, {
     cors: { 
-      origin: "*",
-      methods: ["GET", "POST"]
+      origin: "http://localhost:4200",
+      methods: ["GET", "POST"],
+      credentials: true
     },
     path: "/socket.io/",
     serveClient: false
   });
 
-  io.on("connection", async(socket) => {
-    // Set initial contacts, if no contacts are present
+  io.on("connection", async() => {
     if (Object.keys(contactsState.contacts).length === 0){ 
-      const count = await contactModel.countDocuments();
-      const { query } = new Features(
-        contactModel.find(),
-        { page: 1, limit: 10 }
-      ).paginate(count);
-      
-      const contacts = await query;
+      const contacts = await contactModel.find();
       setInitialContacts(contacts.map(cleanContact));
     }
-    socket.emit(SOCKET_EVENTS.CONTACTS_STATE, contactsState);
   });
 
   return io;
 };
 
-const emitState = () => {
-  io?.emit(SOCKET_EVENTS.CONTACTS_STATE, contactsState);
+export const createContactState = (contact: IContact) => {
+  const lock = getLock(contact._id);
+  contactsState.contacts[contact._id] = { ...contact, lock };
+  io?.emit(SOCKET_EVENTS.CONTACT_CREATED, { ...contact, lock });
 };
 
 export const updateContactState = (contact: IContact) => {
-  contactsState.contacts[contact._id] = {
-    ...cleanContact(contact),
-    lock: getLock(contact._id)
-  };
-  emitState();
+  const lock = getLock(contact._id);
+  const isNewContact = !contactsState.contacts[contact._id];
+  contactsState.contacts[contact._id] = { ...contact, lock };
+  
+  if (isNewContact) {
+    io?.emit(SOCKET_EVENTS.CONTACT_CREATED, { ...contact, lock });
+  } else {
+    io?.emit(SOCKET_EVENTS.CONTACT_UPDATED, { ...contact, lock });
+  }
 };
 
-export const deleteContactFromState = (contactId: string) => {
+export const deleteContactState = (contactId: string) => {
+  const deletedContact = contactsState.contacts[contactId];
   delete contactsState.contacts[contactId];
-  emitState();
+  io?.emit(SOCKET_EVENTS.CONTACT_DELETED, { contactId, deletedContact });
 };
 
 export const updateContactLock = (contactId: string) => {
   if (contactsState.contacts[contactId]) {
-    contactsState.contacts[contactId].lock = getLock(contactId);
-    emitState();
+    const lock = getLock(contactId);
+    contactsState.contacts[contactId].lock = lock;
+    io?.emit(SOCKET_EVENTS.CONTACT_LOCKED, { contactId, lock });
   }
 };
 
 export const setInitialContacts = (contacts: IContact[]) => {
-  const locks = getAllLocks();
   contactsState.contacts = contacts.reduce((acc, contact) => {
     acc[contact._id] = {
-      ...cleanContact(contact),
-      lock: locks.get(contact._id) || null
+      ...contact,
+      lock: getLock(contact._id)
     };
     return acc;
   }, {} as { [id: string]: IContactWithLock });
-  emitState();
 };

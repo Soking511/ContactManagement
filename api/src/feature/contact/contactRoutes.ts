@@ -1,13 +1,12 @@
 import { Router } from "express";
 import {
   createContactValidator,
-  deleteContactValidator,
   updateContactValidator,
 } from "../../validators/contactValidator";
 import {
   createContact,
   deleteContact,
-  getAllContacts,
+  getContacts,
   updateContact,
 } from "./contactController";
 import { isLoggedIn } from "../../middleware/authMiddleware";
@@ -16,10 +15,10 @@ export const contactRoutes: Router = Router();
 
 contactRoutes
   .route("/")
-  .post(createContactValidator, createContact) //isLoggedIn,
-  .get(getAllContacts);
+  .post(isLoggedIn, createContactValidator, createContact) //isLoggedIn,
+  .get(isLoggedIn, getContacts);
 
 contactRoutes
   .route("/:contactId")
-  .delete(deleteContactValidator, deleteContact)
+  .delete(deleteContact)
   .patch(updateContactValidator, updateContact);

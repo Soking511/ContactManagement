@@ -12,7 +12,14 @@ const app: Express = express();
 const httpServer = createServer(app);
 const port = process.env.PORT || 3000;
 
-app.use(cors());
+// Configure CORS
+app.use(cors({
+  origin: 'http://localhost:4200',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // Initialize Socket.IO

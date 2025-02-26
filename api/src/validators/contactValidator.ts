@@ -18,14 +18,6 @@ export const createContactValidator:RequestHandler[] = [
     ,validatorMiddleware
 ]
 
-export const deleteContactValidator:RequestHandler[] = [
-    check('_id')
-        .notEmpty().withMessage('please select contact to delete')
-        .isMongoId().withMessage('invalid contact id')
-    
-    ,validatorMiddleware
-]
-
 export const updateContactValidator:RequestHandler[] = [
     check('name')
         .optional()

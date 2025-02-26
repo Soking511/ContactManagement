@@ -1,0 +1,15 @@
+<button
+  [type]="type"
+  [disabled]="disabled || loading || isCooldown"
+  [attr.aria-label]="ariaLabel"
+  [attr.aria-disabled]="disabled || loading || isCooldown"
+  [class]="classes"
+  (click)="onClick($event)">
+  <span class="btn-content">
+    <span *ngIf="loading" class="spinner"></span>
+    <span *ngIf="icon" class="material-icons text-base">{{icon}}</span>
+    <span class="btn-text">
+      <ng-content></ng-content>
+    </span>
+  </span>
+</button>

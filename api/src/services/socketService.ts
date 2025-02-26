@@ -68,7 +68,7 @@ export const initializeSocket = (server: HttpServer) => {
 export const createContactState = (contact: IContact) => {
   const lock = getLock(contact._id);
   contactsState.contacts[contact._id] = { ...contact, lock };
-  io?.emit(SOCKET_EVENTS.CONTACT_CREATED, { ...contact, lock }, paginate()[0]);
+  io?.emit(SOCKET_EVENTS.CONTACT_CREATED, { ...contact, lock }, paginate().pagination);
 };
 
 export const updateContactState = (contact: IContact) => {
@@ -85,7 +85,7 @@ export const updateContactState = (contact: IContact) => {
 
 export const deleteContactState = (contactId: string) => {
   delete contactsState.contacts[contactId];
-  io?.emit(SOCKET_EVENTS.CONTACT_DELETED, contactId, paginate()[0]);
+  io?.emit(SOCKET_EVENTS.CONTACT_DELETED, contactId, paginate().pagination);
 };
 
 export const updateContactLock = (contactId: string) => {

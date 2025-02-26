@@ -45,6 +45,5 @@ export class EditingStateService {
   stopEditing(): void {
     this.contactsService.socket.emit('contact:unlocked', this.contactsService.selectedContact()?._id, this.authService.user()?._id);
     this.currentlyEditing.set({ field: null, element: null });
-    console.log(this.contactsService.contacts())
   }
 }

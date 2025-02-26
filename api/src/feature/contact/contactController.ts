@@ -12,7 +12,7 @@ import contactModel from "./contactModel";
 import { paginate } from "../../utils/paginate";
 
 export const getContacts = asyncHandler(async (req: Request, res: Response) => {
-  const [pagination, contacts] = paginate(req);
+  const {pagination, contacts} = paginate(req);
   res.json({
     currentUser: req.user,
     data: contacts,

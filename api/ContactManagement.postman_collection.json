@@ -1,0 +1,218 @@
+{
+	"info": {
+		"_postman_id": "random-uuid",
+		"name": "Contact Management API",
+		"description": "API collection for Contact Management system",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"testpassword\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/users/register",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "users", "register"]
+						},
+						"description": "Register a new user"
+					}
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"testpassword\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/users/login",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "users", "login"]
+						},
+						"description": "Login and get JWT token"
+					}
+				}
+			]
+		},
+		{
+			"name": "Contacts",
+			"item": [
+				{
+					"name": "Get All Contacts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/contacts?page=1&limit=5&search=",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "contacts"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number"
+								},
+								{
+									"key": "limit",
+									"value": "5",
+									"description": "Items per page"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "Search term for name, email, phone, or address"
+								}
+							]
+						},
+						"description": "Get paginated list of contacts with optional search"
+					}
+				},
+				{
+					"name": "Create Contact",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"phone\": \"01234567890\",\n    \"notes\": \"Optional notes\",\n    \"address\": {\n        \"street\": \"123 Main St\",\n        \"city\": \"Cairo\",\n        \"country\": \"Egypt\"\n    }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/contacts",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "contacts"]
+						},
+						"description": "Create a new contact. Phone must be a valid Egyptian number."
+					}
+				},
+				{
+					"name": "Update Contact",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Name\",\n    \"email\": \"updated@example.com\",\n    \"phone\": \"01234567890\",\n    \"notes\": \"Updated notes\",\n    \"address\": {\n        \"street\": \"456 New St\",\n        \"city\": \"Alexandria\",\n        \"country\": \"Egypt\"\n    }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/contacts/:contactId",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "contacts", ":contactId"],
+							"variable": [
+								{
+									"key": "contactId",
+									"value": "",
+									"description": "ID of the contact to update"
+								}
+							]
+						},
+						"description": "Update an existing contact. All fields are optional."
+					}
+				},
+				{
+					"name": "Delete Contact",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/contacts/:contactId",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "contacts", ":contactId"],
+							"variable": [
+								{
+									"key": "contactId",
+									"value": "",
+									"description": "ID of the contact to delete"
+								}
+							]
+						},
+						"description": "Delete a contact"
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [""]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [""]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "token",
+			"value": "your-jwt-token-here",
+			"type": "string"
+		}
+	]
+}

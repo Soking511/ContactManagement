@@ -9,8 +9,15 @@ export const paginate = (
   const page = Number(req?.query.page) || 1;
   const limit = Number(req?.query.limit) || 5;
   const skip = (page - 1) * limit;
-
-  const contacts = Object.values(getContactsState().contacts);
+  const search = String(req?.query.search || '');
+  const contacts = Object.values(getContactsState().contacts)
+    .filter(contact => 
+      search ? 
+        contact.name.toLowerCase().includes(search.toLowerCase()) ||
+        contact.email.toLowerCase().includes(search.toLowerCase()) ||
+        contact.phone.includes(search)
+      : true
+    );
   const totalContacts = contacts.length;
   const totalPages = Math.ceil(totalContacts / limit);
 

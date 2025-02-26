@@ -20,5 +20,5 @@ contactRoutes
 
 contactRoutes
   .route("/:contactId")
-  .delete(deleteContact)
-  .patch(updateContactValidator, updateContact);
+  .delete(isLoggedIn, deleteContact)
+  .put(isLoggedIn, updateContactValidator, updateContact);

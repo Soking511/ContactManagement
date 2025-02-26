@@ -20,6 +20,7 @@
         <input
           #searchInput
           type="search"
+          (keyup)="onSearchChange(searchInput.value)"
           placeholder="Search"
           class="w-full h-10 pl-10 pr-4 text-sm border rounded-lg focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
         />
@@ -34,61 +35,90 @@
     <table class="min-w-full divide-y divide-gray-300">
       <thead class="bg-gray-50">
         <tr>
+          @for(header of tableHeaders; track header.key) {
+          <th
+            (click)="sortBy(header.key)"
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group hover:bg-gray-100 transition-colors"
+          >
+            <div class="flex items-center gap-1">
+              {{ header.label }}
+              <span
+                class="material-icons text-xs opacity-0 group-hover:opacity-50"
+                [class.opacity-100]="isCurrentSortColumn(header.key)"
+              >
+                {{ getSortIcon() }}
+              </span>
+            </div>
+          </th>
+          }
           <th
             scope="col"
-            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+            class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right sm:pr-6"
           >
-            Name
-          </th>
-          <th
-            scope="col"
-            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-          >
-            Email
-          </th>
-          <th
-            scope="col"
-            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-          >
-            Phone
-          </th>
-          <th
-            scope="col"
-            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-          >
-            Address
-          </th>
-          <th
-            scope="col"
-            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-          >
-            Notes
-          </th>
-          <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
             <span class="sr-only">Actions</span>
           </th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 bg-white">
         @for (contact of contacts(); track contact._id) {
-        <tr>
+        <tr (click)="selectedContact.set(contact)">
           <td
             class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
           >
-            {{ contact.name }}
+            <app-contacts-element
+              #name
+              [value]="contact.name"
+              [field]="'name'"
+              (valueChange)="updateContact($event)"
+            ></app-contacts-element>
+          </td>
+
+          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+            <app-contacts-element
+              #email
+              [value]="contact.email"
+              [field]="'email'"
+              (valueChange)="updateContact($event)"
+            ></app-contacts-element>
           </td>
           <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-            {{ contact.email }}
+            <app-contacts-element
+              #phone
+              [value]="contact.phone"
+              [field]="'phone'"
+              (valueChange)="updateContact($event)"
+            ></app-contacts-element>
           </td>
           <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-            {{ contact.phone }}
+            <app-contacts-element
+              #addressCountry
+              [value]="contact.address?.country!"
+              [field]="'addressCountry'"
+              (valueChange)="updateContact($event)"
+            ></app-contacts-element>
+            
+            <app-contacts-element
+              #addressCity
+              [value]="contact.address?.city!"
+              [field]="'addressCity'"
+              (valueChange)="updateContact($event)"
+            ></app-contacts-element>
+
+            
+            <app-contacts-element
+              #addressStreet
+              [value]="contact.address?.street!"
+              [field]="'addressStreet'"
+              (valueChange)="updateContact($event)"
+            ></app-contacts-element>
           </td>
           <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-            {{ contact.address?.country }} - {{ contact.address?.city }} -
-            {{ contact.address?.street }}
-          </td>
-          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-            {{ contact.notes }}
+            <app-contacts-element
+              #notes
+              [value]="contact.notes!"
+              [field]="'notes'"
+              (valueChange)="updateContact($event)"
+            ></app-contacts-element>
           </td>
           <td
             class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6"
@@ -113,7 +143,10 @@
   </div>
 
   <!-- Create Contact Popup -->
-    <app-contacts-form [toggleCreate]="toggles.create" (closedCreateContactForm)="toggles.create = false" />
+  <app-contacts-form
+    [toggleCreate]="toggles.create"
+    (closedCreateContactForm)="toggles.create = false"
+  />
 
   <!-- Delete Contact Popup -->
   <app-popup
@@ -139,5 +172,5 @@
 </div>
 
 } @else {
-  <app-session-timeout/>
+<app-session-timeout />
 }

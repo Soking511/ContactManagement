@@ -4,14 +4,22 @@ import { io, Socket } from 'socket.io-client';
 import { ApiService } from './api.service';
 import { IContact } from '../interfaces/contactInterface';
 
+interface SortConfig {
+  column: keyof IContact;
+  direction: 'asc' | 'desc';
+}
+
 @Injectable({
   providedIn: 'root',
 })
+
+
 export class ContactsService {
   private socket: Socket;
   contacts = signal<IContact[]>([]);
   pagination: IPagination | null = null;
   isUserIdle = signal<boolean>(false);
+  private currentSort = signal<SortConfig>({ column: 'name', direction: 'asc' });
 
   constructor(private apiService: ApiService) {
     this.socket = io('http://localhost:3000', {
@@ -69,8 +77,8 @@ export class ContactsService {
     });
   }
 
-  getContacts(page: number = 1): void {
-    this.apiService.get('/contacts', page, true).subscribe({
+  getContacts(page: number = 1, search?: string): void {
+    this.apiService.get('/contacts', page, true, `search=${search||''}`).subscribe({
       next: (response: any) => {
         this.contacts.set(response.data);
         this.pagination = response.pagination;
@@ -83,7 +91,8 @@ export class ContactsService {
   }
 
   updateContact(contactId: string, contact: Partial<IContact>): void {
-    this.socket.emit('contacts:update', { contactId, ...contact });
+    // this.socket.emit('contacts:update', { contactId, ...contact });
+    this.apiService.put(`/contacts/${contactId}`, contact).subscribe();
   }
 
   deleteContact(contactId: string): void {
@@ -96,6 +105,34 @@ export class ContactsService {
     }
   }
 
+  sortContacts(column: keyof IContact) {    
+    const currentSort = this.currentSort();
+    if (currentSort.column === column) {
+      this.currentSort.update(sort => ({
+        ...sort,
+        direction: sort.direction === 'asc' ? 'desc' : 'asc'
+      }));
+    } else {
+      this.currentSort.set({ column, direction: 'asc' });
+    }
+
+    const sortedContacts = [...this.contacts()].sort((a, b) => {
+      const aValue = a[column];
+      const bValue = b[column];
+
+      if (aValue === bValue) return 0;
+
+      const compareResult = aValue! < bValue! ? -1 : 1;
+      return this.currentSort().direction === 'asc'
+        ? compareResult
+        : -compareResult;
+    });
+
+    this.contacts.set(sortedContacts);
+  }
+
+  getCurrentSort = () => this.currentSort();
+  
   private setupIdleListener() {
     window.addEventListener('userIdle', ((event: CustomEvent) => {
       if (event.detail) {

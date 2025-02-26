@@ -58,23 +58,27 @@ export const createContact = asyncHandler(
 
 export const updateContact = asyncHandler(
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { name, email, phone, notes, address } = req.body;
+    const { contactId } = req.params;
+    const updateData: any = {};
+
+    // Only include fields that are present in the request body
+    if (req.body.name) updateData.name = req.body.name;
+    if (req.body.email) updateData.email = req.body.email;
+    if (req.body.phone) updateData.phone = req.body.phone;
+    if (req.body.notes) updateData.notes = req.body.notes;
+    
+    // Handle address updates only if address fields are provided
+    if (req.body.address) {
+      updateData.address = {};
+      if (req.body.address.street) updateData.address.street = req.body.address.street;
+      if (req.body.address.city) updateData.address.city = req.body.address.city;
+      if (req.body.address.country) updateData.address.country = req.body.address.country;
+    }
 
     const contact = await contactModel
-      .findByIdAndUpdate(
-        id,
-        {
-          name,
-          email,
-          phone,
-          notes,
-          address: {
-            street: address.street,
-            city: address.city,
-            country: address.country,
-          },
-        },
+      .findOneAndUpdate(
+        { _id: contactId },
+        updateData,
         { new: true }
       )
       .lean();
@@ -84,7 +88,7 @@ export const updateContact = asyncHandler(
       return;
     }
 
-    releaseLock(id, req.user!._id);
+    releaseLock(contactId, req.user!._id);
     updateContactState(contact as IContact);
     res.json(contact);
   }

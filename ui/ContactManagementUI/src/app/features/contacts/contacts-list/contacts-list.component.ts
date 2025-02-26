@@ -8,26 +8,37 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { PopupComponent } from '../../../shared/components/popup/popup.component';
 import { CommonModule } from '@angular/common';
 import { IContact } from '../../../core/interfaces/contactInterface';
+import { ContactsElementComponent } from "../contacts-element/contacts-element.component";
+
+type SortableColumns = keyof Omit<IContact, '_id'>;
 
 @Component({
   selector: 'app-contacts-list',
   standalone: true,
   imports: [
-    CommonModule,
-    PopupComponent,
-    ContactsFormComponent,
-    ReactiveFormsModule,
-    PaginationComponent,
-    ButtonComponent,
     SessionTimeoutComponent,
-  ],
+    ContactsFormComponent,
+    PaginationComponent,
+    ReactiveFormsModule,
+    ButtonComponent,
+    PopupComponent,
+    CommonModule,
+    ContactsElementComponent
+],
   templateUrl: './contacts-list.component.html',
-  styleUrls: ['./contacts-list.component.scss'],
 })
 export class ContactsListComponent implements OnDestroy {
   selectedContact = signal<IContact | null>(null);
   contactsService = inject(ContactsService);
+  tableHeaders = [
+    { key: 'name' as SortableColumns, label: 'Name' },
+    { key: 'email' as SortableColumns, label: 'Email' },
+    { key: 'phone' as SortableColumns, label: 'Phone' },
+    { key: 'address.country + address.city' as SortableColumns, label: 'Address' },
+    { key: 'notes' as SortableColumns, label: 'Notes' }
+  ];
   contacts;
+  
   toggles = {
     create: false,
     delete: false,
@@ -36,13 +47,60 @@ export class ContactsListComponent implements OnDestroy {
   constructor() {
     this.contacts = this.contactsService.contacts;
   }
+  
+  sortBy(column: SortableColumns) {
+    this.contactsService.sortContacts(column);
+  }
 
-  ngOnDestroy(): void {
-    this.contactsService.disconnect();
+  isCurrentSortColumn = (column: keyof IContact): boolean =>
+    this.contactsService.getCurrentSort().column === column;
+  
+  getSortIcon = (): string =>
+    this.contactsService.getCurrentSort().direction === 'asc' ? 'arrow_upward': 'arrow_downward';
+
+  onSearchChange(searchInput: string) {
+    this.contactsService.getContacts(1, searchInput);
   }
 
   deleteContact(id: string): void {
     this.contactsService.deleteContact(id);
+  }
+
+  updateContact(event: {field: any, value: string}) {
+    const contact = this.selectedContact();
+    console.log(contact)
+    if (!contact) return;
+
+    if (event.field.startsWith('address')) {
+      // Handle address fields
+      if (!contact.address) contact.address = { country: '', city: '', street: '' };
+      
+      switch(event.field) {
+        case 'addressCountry':
+          contact.address.country = event.value;
+          this.contactsService.updateContact(contact._id!, { 
+            address: { ...contact.address, country: event.value } 
+          });
+          break;
+        case 'addressCity':
+          contact.address.city = event.value;
+          this.contactsService.updateContact(contact._id!, { 
+            address: { ...contact.address, city: event.value } 
+          });
+          break;
+        case 'addressStreet':
+          contact.address.street = event.value;
+          this.contactsService.updateContact(contact._id!, { 
+            address: { ...contact.address, street: event.value } 
+          });
+          break;
+      }
+    } else {
+      // Handle direct fields
+      const field = event.field as keyof IContact;
+      contact[field] = event.value as any;
+      this.contactsService.updateContact(contact._id!, { [field]: event.value });
+    }
   }
 
   onPageChange(page: number) {
@@ -54,5 +112,9 @@ export class ContactsListComponent implements OnDestroy {
       this.contactsService.deleteContact(this.selectedContact()!._id!);
       this.toggles.delete = false;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.contactsService.disconnect();
   }
 }

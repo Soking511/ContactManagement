@@ -1,4 +1,11 @@
-import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  inject,
+  Input,
+  Output,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormControl,
@@ -34,7 +41,10 @@ import { ContactsService } from '../../../core/services/contacts.service';
             class="p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
           <ng-container
-            *ngIf="addContactForm.get('name')?.invalid && addContactForm.get('name')?.touched"
+            *ngIf="
+              addContactForm.get('name')?.invalid &&
+              addContactForm.get('name')?.touched
+            "
           >
             <p class="mt-1 text-sm text-red-600">
               Name is required and must be at least 3 characters
@@ -53,7 +63,10 @@ import { ContactsService } from '../../../core/services/contacts.service';
             class="p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
           <ng-container
-            *ngIf="addContactForm.get('email')?.invalid && addContactForm.get('email')?.touched"
+            *ngIf="
+              addContactForm.get('email')?.invalid &&
+              addContactForm.get('email')?.touched
+            "
           >
             <p class="mt-1 text-sm text-red-600">
               Please enter a valid email address
@@ -72,7 +85,10 @@ import { ContactsService } from '../../../core/services/contacts.service';
             class="p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
           <ng-container
-            *ngIf="addContactForm.get('phone')?.invalid && addContactForm.get('phone')?.touched"
+            *ngIf="
+              addContactForm.get('phone')?.invalid &&
+              addContactForm.get('phone')?.touched
+            "
           >
             <p class="mt-1 text-sm text-red-600">
               Phone number must be 11 digits
@@ -196,7 +212,7 @@ export class ContactsFormComponent {
     this.toggleCreate = false;
     this.closedCreateContactForm.emit();
   }
-  
+
   onCreateConfirm() {
     if (this.addContactForm.valid) {
       const formValue = this.addContactForm.value;
@@ -208,23 +224,24 @@ export class ContactsFormComponent {
         address: {
           street: formValue.address?.street!,
           city: formValue.address?.city!,
-          country: formValue.address?.country!
-        }
+          country: formValue.address?.country!,
+        },
       };
 
       this.contactsService.createContact(contact);
       this.toggleCreate = false;
+      this.closedCreateContactForm.emit();
       this.addContactForm.reset();
     } else {
       // Mark all fields as touched to trigger validation messages
-      Object.keys(this.addContactForm.controls).forEach(key => {
+      Object.keys(this.addContactForm.controls).forEach((key) => {
         const control = this.addContactForm.get(key);
         if (control?.invalid) {
           control.markAsTouched();
         }
         if (key === 'address') {
           const addressGroup = control as FormGroup;
-          Object.keys(addressGroup.controls).forEach(addressKey => {
+          Object.keys(addressGroup.controls).forEach((addressKey) => {
             const addressControl = addressGroup.get(addressKey);
             if (addressControl?.invalid) {
               addressControl.markAsTouched();

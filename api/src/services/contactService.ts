@@ -64,9 +64,7 @@ export const getLock = (contactId: string): ILock | null => {
 };
 
 export const getUserLocks = (userId: string): ILock[] => {
-  return Array.from(locks.values()).filter(
-    (lock) => lock.userId === userId
-  );
+  return Array.from(locks.values()).filter((lock) => lock.userId === userId);
 };
 
 setTimeout(() => {
@@ -75,4 +73,4 @@ setTimeout(() => {
       locks.delete(contactId);
     }
   });
-}, 1000 * 60 * 5);
+}, 1000 * 60 * 5); // 5 minutes

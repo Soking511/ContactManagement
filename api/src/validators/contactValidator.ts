@@ -10,11 +10,11 @@ export const createContactValidator:RequestHandler[] = [
     check('email')
         .notEmpty().withMessage('email is required')
         .isEmail().withMessage('email must be valid'),
-        
+
     check('phone')
         .notEmpty().withMessage('phone is required')
         .isMobilePhone('ar-EG').withMessage('phone must be valid')
-
+        
     ,validatorMiddleware
 ]
 
@@ -28,11 +28,16 @@ export const updateContactValidator:RequestHandler[] = [
         .optional()
         .notEmpty().withMessage('email is required')
         .isEmail().withMessage('email must be valid'),
-        
+
     check('phone')
+    .optional()
+    .notEmpty().withMessage('phone is required')
+    .isMobilePhone('ar-EG').withMessage('phone must be valid'),
+
+    check('notes')
         .optional()
-        .notEmpty().withMessage('phone is required')
-        .isMobilePhone('ar-EG').withMessage('phone must be valid')
+        .notEmpty().withMessage('note is required')
+        .isLength({min:2, max:40}).withMessage('note length must be between 2-10')
 
     ,validatorMiddleware
 ]

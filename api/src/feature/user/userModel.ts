@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
 // Hash password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  
+
   // we use gen salt because we need more security
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

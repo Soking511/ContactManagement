@@ -25,7 +25,5 @@ export class TokenService {
     localStorage.removeItem(this.TOKEN_KEY);
   }
 
-  hasToken(): boolean {
-    return !!this.getToken();
-  }
+  hasToken = (): boolean => !!this.getToken();
 }

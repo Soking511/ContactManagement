@@ -5,7 +5,12 @@ import {
 } from "../feature/contact/contactInterface";
 import { Server as HttpServer } from "http";
 import { paginate } from "../utils/paginate";
-import { acquireLock, getLock, getUserLocks, releaseLock } from "./contactService";
+import {
+  acquireLock,
+  getLock,
+  getUserLocks,
+  releaseLock,
+} from "./contactService";
 import { Server } from "socket.io";
 
 let io: Server;
@@ -51,7 +56,7 @@ export const initializeSocket = (server: HttpServer) => {
         acquireLock(contactId, userId);
       }
     );
-    
+
     socket.on(
       SOCKET_EVENTS.CONTACT_UNLOCKED,
       (contactId: string, userId: string) => {
@@ -61,14 +66,17 @@ export const initializeSocket = (server: HttpServer) => {
     );
   });
 
-
   return io;
 };
 
 export const createContactState = (contact: IContact) => {
   const lock = getLock(contact._id);
   contactsState.contacts[contact._id] = { ...contact, lock };
-  io?.emit(SOCKET_EVENTS.CONTACT_CREATED, { ...contact, lock }, paginate().pagination);
+  io?.emit(
+    SOCKET_EVENTS.CONTACT_CREATED,
+    { ...contact, lock },
+    paginate().pagination
+  );
 };
 
 export const updateContactState = (contact: IContact) => {
@@ -94,8 +102,6 @@ export const updateContactLock = (contactId: string) => {
 
   contactsState.contacts[contactId].lock = lock;
   io?.emit(SOCKET_EVENTS.CONTACT_LOCK_STATE, lock);
-  console.log(contactsState);
-  console.log("socket event sent");
 };
 
 export const setInitialContacts = (contacts: IContact[]) => {
@@ -111,6 +117,9 @@ export const setInitialContacts = (contacts: IContact[]) => {
 export const deleteContactUnlock = (contactId: string) => {
   if (contactsState.contacts[contactId]) {
     contactsState.contacts[contactId].lock = null;
-    io?.emit(SOCKET_EVENTS.CONTACT_UPDATED, {...contactsState.contacts[contactId], lock: null});
+    io?.emit(SOCKET_EVENTS.CONTACT_UPDATED, {
+      ...contactsState.contacts[contactId],
+      lock: null,
+    });
   }
 };

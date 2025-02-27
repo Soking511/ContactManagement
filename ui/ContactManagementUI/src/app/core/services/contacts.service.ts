@@ -20,7 +20,7 @@ export class ContactsService {
   contacts = signal<IContactWithLock[]>([]);
   pagination: IPagination | null = null;
   isUserIdle = signal<boolean>(false);
-  selectedContact = signal<IContact | null>(null);
+  selectedContact = signal<IContactWithLock | null>(null);
   private currentSort = signal<SortConfig>({ column: 'name', direction: 'asc' });
 
   constructor(private apiService: ApiService, private authService: AuthService) {
@@ -38,7 +38,10 @@ export class ContactsService {
   private updatePagination = (pagination: IPagination) => {
     this.pagination = {
       ...pagination,
-      currentPage: this.pagination!.currentPage,
+      currentPage:
+        (this.pagination!.currentPage > pagination.totalPages)
+          ? pagination.totalPages
+          : this.pagination!.currentPage,
     };
   };
   
@@ -69,9 +72,10 @@ export class ContactsService {
       }
     });
 
-    this.socket.on('contact:deleted', (contactId: string) => {
+    this.socket.on('contact:deleted', (contactId: string, pagination: IPagination) => {
       const currentContacts = this.contacts();
       this.contacts.set(currentContacts.filter((c) => c._id !== contactId));
+      this.updatePagination(pagination);
       this.getContacts(this.pagination!.currentPage);
     });
 
@@ -105,7 +109,6 @@ export class ContactsService {
   }
 
   updateContact(contactId: string, contact: Partial<IContact>): void {
-    // this.socket.emit('contacts:update', { contactId, ...contact });
     this.apiService.put(`/contacts/${contactId}`, contact).subscribe();
   }
 

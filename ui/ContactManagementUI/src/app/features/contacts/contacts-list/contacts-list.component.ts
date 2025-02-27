@@ -7,8 +7,9 @@ import { ContactsService } from '../../../core/services/contacts.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { PopupComponent } from '../../../shared/components/popup/popup.component';
 import { CommonModule } from '@angular/common';
-import { IContact } from '../../../core/interfaces/contactInterface';
+import { IContact, IContactWithLock } from '../../../core/interfaces/contactInterface';
 import { ContactsElementComponent } from "../contacts-element/contacts-element.component";
+import { AuthService } from '../../../core/services/auth.service';
 
 type SortableColumns = keyof Omit<IContact, '_id'>;
 
@@ -29,6 +30,7 @@ type SortableColumns = keyof Omit<IContact, '_id'>;
 })
 export class ContactsListComponent implements OnDestroy {
   contactsService = inject(ContactsService);
+  authService = inject(AuthService);
   tableHeaders = [
     { key: 'name' as SortableColumns, label: 'Name' },
     { key: 'email' as SortableColumns, label: 'Email' },
@@ -45,6 +47,13 @@ export class ContactsListComponent implements OnDestroy {
 
   constructor() {
     this.contacts = this.contactsService.contacts;
+  }
+
+  isLockedByOther(contact: IContactWithLock): boolean {
+    return !!(
+      contact?.lock &&
+      contact?.lock!.userId !== this.authService.user()?._id
+    );
   }
   
   sortBy(column: SortableColumns) {

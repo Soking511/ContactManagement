@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import { IContact } from './contactInterface';
+import mongoose from "mongoose";
+import { IContact } from "./contactInterface";
 
 const contactSchema = new mongoose.Schema(
   {
@@ -10,8 +10,8 @@ const contactSchema = new mongoose.Schema(
     address: {
       street: { type: String, required: true },
       city: { type: String, required: true },
-      country: { type: String, required: true }
-    }
+      country: { type: String, required: true },
+    },
   },
   { timestamps: true }
 );

@@ -7,12 +7,12 @@ import {
 import { Request, Response } from "express";
 import { releaseLock } from "../../services/contactService";
 import { IContact } from "./contactInterface";
+import { paginate } from "../../utils/paginate";
 import asyncHandler from "express-async-handler";
 import contactModel from "./contactModel";
-import { paginate } from "../../utils/paginate";
 
 export const getContacts = asyncHandler(async (req: Request, res: Response) => {
-  const {pagination, contacts} = paginate(req);
+  const { pagination, contacts } = paginate(req);
   res.json({
     currentUser: req.user,
     data: contacts,
@@ -29,16 +29,16 @@ export const createContact = asyncHandler(
       return;
     }
 
-    // search in contacts state, that is faster than database 
+    // search in contacts state, that is faster than database
     const contacts = Object.values(getContactsState().contacts);
-    const existingContact = contacts.find(contact => contact.email === email);
+    const existingContact = contacts.find((contact) => contact.email === email);
     if (existingContact) {
       res.status(400).json({ message: "Contact already exists" });
       return;
     }
 
-    const contact = await contactModel.create(
-      {
+    const contact = await contactModel
+      .create({
         name,
         email,
         phone,
@@ -48,10 +48,10 @@ export const createContact = asyncHandler(
           city: address.city,
           country: address.country,
         },
-      }
-    ).then(doc => doc.toObject());
+      })
+      .then((doc) => doc.toObject());
     // convert mongoose document to plain object
- 
+
     createContactState(contact);
     res.status(201).json(contact);
   }
@@ -67,21 +67,20 @@ export const updateContact = asyncHandler(
     if (req.body.email) updateData.email = req.body.email;
     if (req.body.phone) updateData.phone = req.body.phone;
     if (req.body.notes) updateData.notes = req.body.notes;
-    
+
     // Handle address updates only if address fields are provided
     if (req.body.address) {
       updateData.address = {};
-      if (req.body.address.street) updateData.address.street = req.body.address.street;
-      if (req.body.address.city) updateData.address.city = req.body.address.city;
-      if (req.body.address.country) updateData.address.country = req.body.address.country;
+      if (req.body.address.street)
+        updateData.address.street = req.body.address.street;
+      if (req.body.address.city)
+        updateData.address.city = req.body.address.city;
+      if (req.body.address.country)
+        updateData.address.country = req.body.address.country;
     }
 
     const contact = await contactModel
-      .findOneAndUpdate(
-        { _id: contactId },
-        updateData,
-        { new: true }
-      )
+      .findOneAndUpdate({ _id: contactId }, updateData, { new: true })
       .lean();
 
     if (!contact) {

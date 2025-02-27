@@ -10,11 +10,9 @@ export interface JwtPayload {
 }
 
 export const generateToken = (user: IUser): string => {
-  return jwt.sign(
-    { _id: user._id, username: user.username },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
-  );
+  return jwt.sign({ _id: user._id, username: user.username }, JWT_SECRET, {
+    expiresIn: JWT_EXPIRES_IN,
+  });
 };
 
 export const verifyToken = (token: string): JwtPayload | null => {

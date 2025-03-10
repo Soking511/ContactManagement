@@ -66,11 +66,3 @@ export const getLock = (contactId: string): ILock | null => {
 export const getUserLocks = (userId: string): ILock[] => {
   return Array.from(locks.values()).filter((lock) => lock.userId === userId);
 };
-
-setTimeout(() => {
-  locks.forEach((lock, contactId) => {
-    if (Date.now() - lock.timestamp > LOCK_TIMEOUT) {
-      locks.delete(contactId);
-    }
-  });
-}, 1000 * 60 * 5); // 5 minutes

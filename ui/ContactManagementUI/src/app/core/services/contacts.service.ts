@@ -4,6 +4,7 @@ import { io, Socket } from 'socket.io-client';
 import { ApiService } from './api.service';
 import { IContact, IContactWithLock, ILock } from '../interfaces/contactInterface';
 import { AuthService } from './auth.service';
+import { environment } from '../../../environments/environment';
 
 interface SortConfig {
   column: keyof IContact;
@@ -25,14 +26,26 @@ export class ContactsService {
 
   constructor(private apiService: ApiService, private authService: AuthService) {
 
-    this.socket = io('https://soking.tech', {
+    this.socket = io(environment.apiUrl, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
     });
 
     this.setupSocketListeners();
     this.setupIdleListener();
     this.getContacts();
+
+    this.socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+
+      setTimeout(() => {
+        console.log('Attempting to reconnect...');
+        this.socket.connect();
+      }, 2000);
+    });
   }
 
   private updatePagination = (pagination: IPagination) => {

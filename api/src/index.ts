@@ -1,4 +1,4 @@
-import { cleanContact, getContactsState, initializeSocket, setInitialContacts } from "./services/socketService";
+import { cleanContact, initializeSocket, setInitialContacts } from "./services/socketService";
 import { createServer } from "http";
 import { mountRoutes } from "./routes/mainRoutes";
 import express, { Express } from "express";

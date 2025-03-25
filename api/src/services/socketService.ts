@@ -35,9 +35,11 @@ export const getContactsState = () => contactsState;
 export const initializeSocket = (server: HttpServer) => {
   io = new Server(server, {
     cors: {
-      origin: "https://soking.tech",
-      methods: ["GET", "POST"],
+      origin: "*", // Allow all origins instead of just "https://soking.tech"
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      credentials: true
     },
+    path: '/socket.io', // Ensure consistent path with client
   });
 
   io.on("connection", async (socket) => {

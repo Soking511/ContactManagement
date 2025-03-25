@@ -42,7 +42,12 @@ export const initializeSocket = (server: HttpServer) => {
     path: '/socket.io', // Ensure consistent path with client
   });
 
+  // Log when server is initialized
+  console.log("Socket.IO server initialized with path: /socket.io");
+
   io.on("connection", async (socket) => {
+    console.log(`Client connected: ${socket.id}`);
+
     socket.on("disconnect", () => {
       console.log("Client disconnected");
       getUserLocks(socket.id).forEach((lock) => {

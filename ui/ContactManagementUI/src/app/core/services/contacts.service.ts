@@ -25,8 +25,8 @@ export class ContactsService {
   private currentSort = signal<SortConfig>({ column: 'name', direction: 'asc' });
 
   constructor(private apiService: ApiService, private authService: AuthService) {
-
-    this.socket = io(environment.baseURL, {
+    // Modified socket connection to fix namespace issue
+    this.socket = io(environment.baseURL.split('/backend/contact/api')[0], {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
       reconnection: true,

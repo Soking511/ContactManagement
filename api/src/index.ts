@@ -38,5 +38,5 @@ httpServer.listen(port, async() => {
     setInitialContacts(contacts.map(cleanContact));
     contactsLoaded = true;
   }
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+  console.log(`⚡️[server]: Server is running at port: ${port}`);
 });

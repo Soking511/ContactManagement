@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'https://soking.tech/backend/contact/api',
 };

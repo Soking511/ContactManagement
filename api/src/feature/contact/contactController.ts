@@ -60,7 +60,7 @@ export const createContact = asyncHandler(
 export const updateContact = asyncHandler(
   async (req: Request, res: Response) => {
     const { contactId } = req.params;
-    const updateData: any = {};
+    const updateData: Partial<IContact> = {};
 
     // Only include fields that are present in the request body
     if (req.body.name) updateData.name = req.body.name;
@@ -70,7 +70,11 @@ export const updateContact = asyncHandler(
 
     // Handle address updates only if address fields are provided
     if (req.body.address) {
-      updateData.address = {};
+      updateData.address = {
+        street: "",
+        city: "",
+        country: "",
+      };
       if (req.body.address.street)
         updateData.address.street = req.body.address.street;
       if (req.body.address.city)

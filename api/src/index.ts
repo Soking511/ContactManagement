@@ -16,7 +16,7 @@ let contactsLoaded = false;
 
 // Configure CORS
 app.use(cors({
-  origin: 'http://localhost:4200',
+  origin: '*',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -32,8 +32,8 @@ connectDB();
 
 mountRoutes(app);
 
-httpServer.listen(port, async() => { 
-  if (!contactsLoaded) { 
+httpServer.listen(port, async() => {
+  if (!contactsLoaded) {
     const contacts = await contactModel.find();
     setInitialContacts(contacts.map(cleanContact));
     contactsLoaded = true;

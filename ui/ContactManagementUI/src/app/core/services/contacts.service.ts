@@ -25,7 +25,7 @@ export class ContactsService {
 
   constructor(private apiService: ApiService, private authService: AuthService) {
 
-    this.socket = io('http://localhost:3000', {
+    this.socket = io('https://soking.tech', {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
     });
@@ -44,12 +44,12 @@ export class ContactsService {
           : this.pagination!.currentPage,
     };
   };
-  
+
 
   private setupSocketListeners() {
     this.socket.on('connection', () => {
     //   console.log('Socket connected');
-      
+
     });
 
     // Events for updating the UI
@@ -123,7 +123,7 @@ export class ContactsService {
     }
   }
 
-  sortContacts(column: keyof IContact) {    
+  sortContacts(column: keyof IContact) {
     const currentSort = this.currentSort();
     if (currentSort.column === column) {
       this.currentSort.update(sort => ({
@@ -150,13 +150,13 @@ export class ContactsService {
   }
 
   getCurrentSort = () => this.currentSort();
-  
+
   private setupIdleListener() {
     window.addEventListener('userIdle', ((event: CustomEvent) => {
       if (event.detail) {
         this.disconnect();
         this.isUserIdle.set(true);
-    
+
       }
     }) as EventListener);
   }

@@ -4,7 +4,7 @@ import { io, Socket } from 'socket.io-client';
 import { ApiService } from './api.service';
 import { IContact, IContactWithLock, ILock } from '../interfaces/contactInterface';
 import { AuthService } from './auth.service';
-import { environment } from '../../../environments/environment';
+import { environment } from '../environments/environment';
 
 interface SortConfig {
   column: keyof IContact;
@@ -26,7 +26,7 @@ export class ContactsService {
 
   constructor(private apiService: ApiService, private authService: AuthService) {
 
-    this.socket = io(environment.apiUrl, {
+    this.socket = io(environment.baseURL, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
       reconnection: true,
